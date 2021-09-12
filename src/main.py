@@ -90,7 +90,6 @@ def oneHot(data,
     a = np.array(place)
     oneHot = np.zeros((a.size, a.max()+1))
     oneHot[np.arange(a.size),a] = 1
-    print(oneHot[0])
     return oneHot
 
 def preprocess(data, maxPad):
@@ -119,19 +118,28 @@ def makeEmbMatrix(embedding, dict, embDepth):
             embMatrix[i] = embeddingVec
     return embMatrix
 
-def submission(X, yLabel, yPred):
-    submission = []
+def submission(X, yLabel, yPred, yDict, XDict):
+    submission = ['job_description', 'Label_true', 'Label_pred']
     amount = 0
     for i in range(X.shape[0]):
         submission.append([
-            getIndex(yLabel[i], max(yLabel[i])), 
-            getIndex(yPred[i], max(yPred[i])),
-            (getIndex(yLabel[i], max(yLabel[i])) == getIndex(yPred[i], max(yPred[i])))
+            detokenize(X[i], XDict),
+            yDict[getIndex(yLabel[i], max(yLabel[i]))], 
+            yDict[getIndex(yPred[i], max(yPred[i]))]
         ])
-        if submission[-1][0] == submission[-1][1]:
-            amount += 1
-    print("From {1} where {0} correct, meaning: {2}% were correct!!".format(amount, len(submission), (amount/len(submission))*100))
-    np.savetxt(fname = "../data/submission.csv", X = submission, delimiter = ";")
+    # print(submission)
+    with open('../data/submission.csv', "w") as file:
+        for i in submission:
+            line = "{};{};{}\n".format(*i)
+            file.write(line)
+
+def detokenize(sentence, dict):
+    detokenized = []
+    print(sentence)
+    for i in sentence:
+        print(i)
+        detokenized.append(dict[i])
+    return detokenized
 
 def getIndex(npArray, element):
     for i in range(npArray.shape[0]):
@@ -199,4 +207,5 @@ if __name__ == "__main__":
     model.save_weights("../data/weights.hdf5")
     print(history.params)
     out = model.predict(XTest)
-    submission(XTest, yTest, out)
+    print(ydict)
+    submission(XTest, yTest, out, ydict, Xdict)
