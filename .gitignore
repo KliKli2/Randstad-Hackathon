@@ -1,2 +1,3 @@
 model.txt
 pyvenv.cfg
+**/env
